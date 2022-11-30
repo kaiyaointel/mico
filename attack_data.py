@@ -121,9 +121,15 @@ class AttackDataset(Dataset):
 
 
 attack_dataset = AttackDataset(feature, membership)
+attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [180, 20])
 
 attack_train_loader = DataLoader(
-    attack_dataset,
+    attack_train_set,
+    batch_size=10,
+    shuffle=True,
+)
+attack_eval_loader = DataLoader(
+    attack_eval_set,
     batch_size=10,
     shuffle=True,
 )
@@ -179,9 +185,18 @@ for i in range(10000):
         loss.backward()
         optimizer.step()
 
-    print(np.mean(losses))
-    
-# evaluate attack
+    print(np.mean(losses)) # mean loss of one epoch
+
+# evaluate attack on train
+print("evaluate attack on train ...")
+model.eval()
 for i, (inputs, target) in enumerate(attack_train_loader):
+    output = model(inputs)
+    print(output, target)
+
+# evaluate attack on eval
+print("evaluate attack on eval ...")
+model.eval()
+for i, (inputs, target) in enumerate(attack_eval_loader):
     output = model(inputs)
     print(output, target)
