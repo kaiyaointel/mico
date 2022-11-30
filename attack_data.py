@@ -21,7 +21,7 @@ challenge_dataset = ChallengeDataset(
     seed_challenge=seed_challenge,
     seed_training=seed_training,
     seed_membership=seed_membership)
-    
+
 train_dataset = challenge_dataset.get_train_dataset()
 eval_dataset = challenge_dataset.get_eval_dataset()
 
@@ -44,6 +44,9 @@ device = "cpu"
 import torch
 from torch import nn
 
+feature = []
+membership = []
+
 with torch.no_grad():
     count = 0
     count_correct = 0
@@ -52,7 +55,10 @@ with torch.no_grad():
         target = target.to(device)
 
         output = model(inputs)
-
+        
+        feature.append(output)
+        membership.append(1)
+        
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
 
@@ -63,8 +69,8 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 1000:
-            print(count_correct / 1000)
+        if count == 10:
+            print(count_correct / 10)
             break
 
 with torch.no_grad():
@@ -75,6 +81,9 @@ with torch.no_grad():
         target = target.to(device)
 
         output = model(inputs)
+        
+        feature.append(output)
+        membership.append(0)
 
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
@@ -86,6 +95,33 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 1000:
-            print(count_correct / 1000)
+        if count == 10:
+            print(count_correct / 10)
             break
+
+from torch.utils.data import Dataset
+
+class AttackDataset(Dataset):
+    def __init__(self, feature, membership):
+        super().__init__()
+        self.feature = feature
+        self.membership = membership
+
+    def __len__(self):
+        return len(self.membership)
+
+    def __getitem__(self, index):
+        this_feature = feature[i]
+        this_membership = membership[i]
+        return this_feature, this_membership
+
+attack_dataset = AttackDataset(feature, membership)
+
+attack_train_loader = DataLoader(
+    attack_dataset,
+    batch_size=1,
+)
+
+for i, (inputs, target) in enumerate(attack_train_loader):
+    print(inputs)
+    print(target)
