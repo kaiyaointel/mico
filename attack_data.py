@@ -47,6 +47,7 @@ from torch import nn
 feature = []
 membership = []
 
+# member
 with torch.no_grad():
     count = 0
     count_correct = 0
@@ -57,7 +58,7 @@ with torch.no_grad():
         output = model(inputs)
         
         feature.append(output)
-        membership.append(1)
+        membership.append(torch.tensor([1]))
         
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
@@ -69,10 +70,11 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 10:
-            print(count_correct / 10)
+        if count == 100:
+            print(count_correct / 100)
             break
 
+# non-member
 with torch.no_grad():
     count = 0
     count_correct = 0
@@ -83,7 +85,7 @@ with torch.no_grad():
         output = model(inputs)
         
         feature.append(output)
-        membership.append(0)
+        membership.append(torch.tensor([0]))
 
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
@@ -95,9 +97,11 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 10:
-            print(count_correct / 10)
+        if count == 100:
+            print(count_correct / 100)
             break
+
+# attack
 
 from torch.utils.data import Dataset
 
@@ -111,17 +115,73 @@ class AttackDataset(Dataset):
         return len(self.membership)
 
     def __getitem__(self, index):
-        this_feature = feature[i]
-        this_membership = membership[i]
+        this_feature = self.feature[index]
+        this_membership = self.membership[index]
         return this_feature, this_membership
+
 
 attack_dataset = AttackDataset(feature, membership)
 
 attack_train_loader = DataLoader(
     attack_dataset,
-    batch_size=1,
+    batch_size=10,
+    shuffle=True,
 )
 
+import os
+import torch
+import torch.nn as nn
+
+from collections import OrderedDict
+from typing import List, Optional, Union, Type, TypeVar
+
+X = TypeVar("X", bound="DNN")
+
+class DNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.dnn = nn.Sequential(
+            nn.Linear(in_features=10, out_features=5),
+            nn.ReLU(),
+            nn.Linear(in_features=5, out_features=3),
+            nn.ReLU(),
+            nn.Linear(in_features=3, out_features=1),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits = self.dnn(x)
+        return logits
+
+model = DNN()
+
+import torch.optim as optim
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0)
+
+model.train()
+
+criterion = nn.BCELoss()
+
+# train attack
+for i in range(10000):
+    losses = []
+    for i, (inputs, target) in enumerate(attack_train_loader):
+        inputs = inputs.to(device)
+        target = target.to(device)
+
+        optimizer.zero_grad()
+
+        output = model(inputs)
+
+        loss = criterion(output, target.unsqueeze(1).float()) # notice here need to unsqueeze and float to deal with dimension
+        losses.append(loss.item())
+        
+        loss.backward()
+        optimizer.step()
+
+    print(np.mean(losses))
+    
+# evaluate attack
 for i, (inputs, target) in enumerate(attack_train_loader):
-    print(inputs)
-    print(target)
+    output = model(inputs)
+    print(output, target)
