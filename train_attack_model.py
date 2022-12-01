@@ -35,7 +35,7 @@ class AttackDataset(Dataset):
 
 
 attack_dataset = AttackDataset(feature, membership)
-attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [180, 20])
+attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [1000, 1000])
 
 attack_train_loader = DataLoader(
     attack_train_set,
@@ -54,11 +54,11 @@ class DNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.dnn = nn.Sequential(
-            nn.Linear(in_features=10, out_features=5),
+            nn.Linear(in_features=10, out_features=20),
             nn.ReLU(),
-            nn.Linear(in_features=5, out_features=3),
+            nn.Linear(in_features=20, out_features=20),
             nn.ReLU(),
-            nn.Linear(in_features=3, out_features=1),
+            nn.Linear(in_features=20, out_features=1),
             nn.Sigmoid(),
         )
 
@@ -68,7 +68,7 @@ class DNN(nn.Module):
 
 model = DNN()
 
-optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0)
+optimizer = torch.optim.Adagrad(model.parameters(), lr=0.1)
 
 model.train()
 
