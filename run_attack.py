@@ -64,7 +64,7 @@ class DNN(nn.Module):
         return logits
 
 attack_model = DNN()
-attack_model.load_state_dict(torch.load('/tmp/kyao/MICO/starting-kit/cifar10/cifar10_inf/train/model_1/attack_model.pt'))
+attack_model.load_state_dict(torch.load('attack_model.pt'))
 attack_model.eval()
 
 for scenario in tqdm(scenarios, desc="scenario"):
@@ -97,14 +97,10 @@ for scenario in tqdm(scenarios, desc="scenario"):
             # print("predictions: ", predictions.shape) # (200,)
             # Normalize to unit interval
 
-            predictions = torch.where(predictions >= 0.5, torch.ones_like(predictions), predictions)
-            predictions = torch.where(predictions < 0.5, torch.zeros_like(predictions), predictions)
-
-            predictions = predictions.int()
             predictions = predictions.squeeze()
-            
+
             predictions = predictions.detach().numpy()
-            
+
             # min_prediction = np.min(predictions)
             # max_prediction = np.max(predictions)
             # predictions = (predictions - min_prediction) / (max_prediction - min_prediction)
