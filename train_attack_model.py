@@ -37,14 +37,16 @@ class AttackDataset(Dataset):
 attack_dataset = AttackDataset(feature, membership)
 attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [1000, 1000])
 
+batch_size = 50
+
 attack_train_loader = DataLoader(
     attack_train_set,
-    batch_size=10,
+    batch_size=batch_size,
     shuffle=True,
 )
 attack_eval_loader = DataLoader(
     attack_eval_set,
-    batch_size=10,
+    batch_size=batch_size,
     shuffle=True,
 )
 
@@ -70,13 +72,15 @@ model = DNN()
 
 optimizer = torch.optim.Adagrad(model.parameters(), lr=0.1)
 
-model.train()
-
 criterion = nn.BCELoss()
 
 # train attack
 for i in range(10000):
+
+    model.train()
     losses = []
+    correct_sample = 0
+    total_sample = 0
     for i, (inputs, target) in enumerate(attack_train_loader):
         inputs = inputs.to(device)
         target = target.to(device)
@@ -84,14 +88,43 @@ for i in range(10000):
         optimizer.zero_grad()
 
         output = model(inputs)
-
+        
         loss = criterion(output, target.unsqueeze(1).float()) # notice here need to unsqueeze and float to deal with dimension
         losses.append(loss.item())
         
         loss.backward()
         optimizer.step()
 
-    print(np.mean(losses)) # mean loss of one epoch
+        output = torch.where(output >= 0.5, torch.ones_like(output), output)
+        output = torch.where(output < 0.5, torch.zeros_like(output), output)
+
+        for k in range(batch_size):
+            total_sample += 1
+            if output.squeeze()[k] == target.squeeze()[k]:
+                correct_sample += 1
+
+    model.eval()
+    losses_eval = []
+    correct_sample_eval = 0
+    total_sample_eval = 0
+    for i, (inputs, target) in enumerate(attack_eval_loader):
+        output = model(inputs)
+
+        loss_eval = criterion(output, target.unsqueeze(1).float())
+        losses_eval.append(loss_eval.item())
+
+        output = torch.where(output >= 0.5, torch.ones_like(output), output)
+        output = torch.where(output < 0.5, torch.zeros_like(output), output)
+
+        for k in range(batch_size):
+            total_sample_eval += 1
+            if output.squeeze()[k] == target.squeeze()[k]:
+                correct_sample_eval += 1
+
+    print("train_loss ", np.mean(losses), " train_acc ", correct_sample / total_sample,
+          " eval_loss ", np.mean(losses_eval), " eval_acc ", correct_sample_eval / total_sample_eval,) # mean loss of one epoch
+
+torch.save(model, 'attack_model.pt')
 
 # evaluate attack on train
 print("evaluate attack on train ...")
