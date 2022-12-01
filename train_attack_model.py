@@ -35,9 +35,9 @@ class AttackDataset(Dataset):
 
 
 attack_dataset = AttackDataset(feature, membership)
-attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [1000, 1000])
+attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [9000, 1000])
 
-batch_size = 50
+batch_size = 10
 
 attack_train_loader = DataLoader(
     attack_train_set,
@@ -56,11 +56,11 @@ class DNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.dnn = nn.Sequential(
-            nn.Linear(in_features=10, out_features=20),
+            nn.Linear(10, 20),
             nn.ReLU(),
-            nn.Linear(in_features=20, out_features=20),
+            nn.Linear(20, 20),
             nn.ReLU(),
-            nn.Linear(in_features=20, out_features=1),
+            nn.Linear(20, 1),
             nn.Sigmoid(),
         )
 
@@ -104,38 +104,41 @@ for i in range(10000):
                 correct_sample += 1
 
     model.eval()
-    losses_eval = []
-    correct_sample_eval = 0
-    total_sample_eval = 0
-    for i, (inputs, target) in enumerate(attack_eval_loader):
-        output = model(inputs)
+    with torch.no_grad():
+        losses_eval = []
+        correct_sample_eval = 0
+        total_sample_eval = 0
+        for i, (inputs, target) in enumerate(attack_eval_loader):
+            output = model(inputs)
 
-        loss_eval = criterion(output, target.unsqueeze(1).float())
-        losses_eval.append(loss_eval.item())
+            loss_eval = criterion(output, target.unsqueeze(1).float())
+            losses_eval.append(loss_eval.item())
 
-        output = torch.where(output >= 0.5, torch.ones_like(output), output)
-        output = torch.where(output < 0.5, torch.zeros_like(output), output)
+            output = torch.where(output >= 0.5, torch.ones_like(output), output)
+            output = torch.where(output < 0.5, torch.zeros_like(output), output)
 
-        for k in range(batch_size):
-            total_sample_eval += 1
-            if output.squeeze()[k] == target.squeeze()[k]:
-                correct_sample_eval += 1
+            for k in range(batch_size):
+                total_sample_eval += 1
+                if output.squeeze()[k] == target.squeeze()[k]:
+                    correct_sample_eval += 1
 
     print("train_loss ", np.mean(losses), " train_acc ", correct_sample / total_sample,
           " eval_loss ", np.mean(losses_eval), " eval_acc ", correct_sample_eval / total_sample_eval,) # mean loss of one epoch
 
 torch.save(model, 'attack_model.pt')
 
-# evaluate attack on train
-print("evaluate attack on train ...")
-model.eval()
-for i, (inputs, target) in enumerate(attack_train_loader):
-    output = model(inputs)
-    print(output, target)
+# evaluation
+with torch.no_grad():
+    # evaluate attack on train
+    print("evaluate attack on train ...")
+    model.eval()
+    for i, (inputs, target) in enumerate(attack_train_loader):
+        output = model(inputs)
+        print(output, target)
 
-# evaluate attack on eval
-print("evaluate attack on eval ...")
-model.eval()
-for i, (inputs, target) in enumerate(attack_eval_loader):
-    output = model(inputs)
-    print(output, target)
+    # evaluate attack on eval
+    print("evaluate attack on eval ...")
+    model.eval()
+    for i, (inputs, target) in enumerate(attack_eval_loader):
+        output = model(inputs)
+        print(output, target)
