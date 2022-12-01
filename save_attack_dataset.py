@@ -25,7 +25,9 @@ challenge_dataset = ChallengeDataset(
     seed_membership=seed_membership)
 
 train_dataset = challenge_dataset.get_train_dataset()
+print(train_dataset.__len__())
 eval_dataset = challenge_dataset.get_eval_dataset()
+print(eval_dataset.__len__())
 
 train_loader = DataLoader(
     train_dataset,
@@ -51,13 +53,14 @@ with torch.no_grad():
     count = 0
     count_correct = 0
     for i, (inputs, target) in enumerate(train_loader):
+        print(i)
         inputs = inputs.to(device)
         target = target.to(device)
 
         output = model(inputs)
         
         feature.append(output)
-        membership.append(torch.tensor([1]))
+        membership.append(torch.tensor([1])) # member: 1
         
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
@@ -69,8 +72,8 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 100:
-            print(count_correct / 100)
+        if count == 5000:
+            print(count_correct / 5000)
             break
 
 # non-member
@@ -78,13 +81,14 @@ with torch.no_grad():
     count = 0
     count_correct = 0
     for i, (inputs, target) in enumerate(eval_loader):
+        print(i)
         inputs = inputs.to(device)
         target = target.to(device)
 
         output = model(inputs)
         
         feature.append(output)
-        membership.append(torch.tensor([0]))
+        membership.append(torch.tensor([0])) # non-member: 0
 
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
@@ -96,8 +100,8 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 100:
-            print(count_correct / 100)
+        if count == 5000:
+            print(count_correct / 5000)
             break
 
 torch.save(feature, 'feature')
