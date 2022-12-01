@@ -71,12 +71,14 @@ class DNN(nn.Module):
 
 model = DNN()
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.005, weight_decay=0.01)
 
 criterion = nn.BCELoss()
 
+num_epoch = 1770
+
 # train attack
-for i in range(10000):
+for i in range(num_epoch):
 
     model.train()
     losses = []
@@ -126,20 +128,18 @@ for i in range(10000):
     print("train_loss ", np.mean(losses), " train_acc ", correct_sample / total_sample,
           " eval_loss ", np.mean(losses_eval), " eval_acc ", correct_sample_eval / total_sample_eval,) # mean loss of one epoch
 
-torch.save(model, 'attack_model.pt')
+torch.save(model.state_dict(), 'attack_model.pt')
 
-# evaluation
-with torch.no_grad():
-    # evaluate attack on train
-    print("evaluate attack on train ...")
-    model.eval()
-    for i, (inputs, target) in enumerate(attack_train_loader):
-        output = model(inputs)
-        print(output, target)
+# # evaluation
+# with torch.no_grad():
+    # # evaluate attack on train
+    # print("evaluate attack on train ...")
+    # model.eval()
+    # for i, (inputs, target) in enumerate(attack_train_loader):
+        # output = model(inputs)
 
-    # evaluate attack on eval
-    print("evaluate attack on eval ...")
-    model.eval()
-    for i, (inputs, target) in enumerate(attack_eval_loader):
-        output = model(inputs)
-        print(output, target)
+    # # evaluate attack on eval
+    # print("evaluate attack on eval ...")
+    # model.eval()
+    # for i, (inputs, target) in enumerate(attack_eval_loader):
+        # output = model(inputs)
