@@ -36,7 +36,8 @@ class AttackDataset(Dataset):
 
 
 attack_dataset = AttackDataset(features, memberships)
-attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [1800, 200])
+print("attack dataset length: ", attack_dataset.__len__())
+attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [158400, 39600])
 
 batch_size = 50
 
@@ -71,11 +72,11 @@ class DNN(nn.Module):
 
 model = DNN()
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.005, weight_decay=0.01)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
 
 criterion = nn.BCELoss()
 
-num_epoch = 1770
+num_epoch = 100
 
 # train attack
 for i in range(num_epoch):
@@ -101,7 +102,7 @@ for i in range(num_epoch):
         output = torch.where(output >= 0.5, torch.ones_like(output), output)
         output = torch.where(output < 0.5, torch.zeros_like(output), output)
 
-        for k in range(batch_size):
+        for k in range(min(batch_size, len(output.squeeze()))):
             total_sample += 1
             if output.squeeze()[k] == target.squeeze()[k]:
                 correct_sample += 1
@@ -120,7 +121,7 @@ for i in range(num_epoch):
             output = torch.where(output >= 0.5, torch.ones_like(output), output)
             output = torch.where(output < 0.5, torch.zeros_like(output), output)
 
-            for k in range(batch_size):
+            for k in range(min(batch_size, len(output.squeeze()))):
                 total_sample_eval += 1
                 if output.squeeze()[k] == target.squeeze()[k]:
                     correct_sample_eval += 1
