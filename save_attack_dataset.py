@@ -45,8 +45,10 @@ model.eval()
 
 device = "cpu"
 
-feature = []
-membership = []
+features = []
+memberships = []
+
+data_size = 1000
 
 # member
 with torch.no_grad():
@@ -59,11 +61,14 @@ with torch.no_grad():
 
         output = model(inputs)
         
-        feature.append(output)
-        membership.append(torch.tensor([1])) # member: 1
+        # features.append(output)
+        memberships.append(torch.tensor([1])) # member: 1
         
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
+        
+        feature = torch.cat((output.squeeze(), loss.view(1))) # output + loss
+        features.append(feature)
 
         preds = np.argmax(output.detach().cpu().numpy(), axis=1)
         labels = target.detach().cpu().numpy()
@@ -72,8 +77,8 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 5000:
-            print(count_correct / 5000)
+        if count == data_size:
+            print(count_correct / data_size)
             break
 
 # non-member
@@ -87,11 +92,14 @@ with torch.no_grad():
 
         output = model(inputs)
         
-        feature.append(output)
-        membership.append(torch.tensor([0])) # non-member: 0
+        # features.append(output)
+        memberships.append(torch.tensor([0])) # non-member: 0
 
         criterion = nn.CrossEntropyLoss()
         loss = criterion(output, target)
+        
+        feature = torch.cat((output.squeeze(), loss.view(1))) # output + loss
+        features.append(feature)
 
         preds = np.argmax(output.detach().cpu().numpy(), axis=1)
         labels = target.detach().cpu().numpy()
@@ -100,9 +108,9 @@ with torch.no_grad():
         if preds == labels:
             count_correct += 1
 
-        if count == 5000:
-            print(count_correct / 5000)
+        if count == data_size:
+            print(count_correct / data_size)
             break
 
-torch.save(feature, 'feature')
-torch.save(membership, 'membership')
+torch.save(features, 'features')
+torch.save(memberships, 'memberships')
