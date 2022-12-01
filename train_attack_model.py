@@ -9,9 +9,10 @@ from typing import List, Optional, Union, Type, TypeVar
 from mico_competition import ChallengeDataset, load_cifar10, load_model
 from torch.utils.data import DataLoader
 
+torch.manual_seed(2022)
 
-feature = torch.load('feature')
-membership = torch.load('membership')
+features = torch.load('features')
+memberships = torch.load('memberships')
 
 device = "cpu"
 
@@ -20,24 +21,24 @@ device = "cpu"
 from torch.utils.data import Dataset
 
 class AttackDataset(Dataset):
-    def __init__(self, feature, membership):
+    def __init__(self, features, memberships):
         super().__init__()
-        self.feature = feature
-        self.membership = membership
+        self.features = features
+        self.memberships = memberships
 
     def __len__(self):
-        return len(self.membership)
+        return len(self.memberships)
 
     def __getitem__(self, index):
-        this_feature = self.feature[index]
-        this_membership = self.membership[index]
+        this_feature = self.features[index]
+        this_membership = self.memberships[index]
         return this_feature, this_membership
 
 
-attack_dataset = AttackDataset(feature, membership)
-attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [9000, 1000])
+attack_dataset = AttackDataset(features, memberships)
+attack_train_set, attack_eval_set = torch.utils.data.random_split(attack_dataset, [1800, 200])
 
-batch_size = 10
+batch_size = 50
 
 attack_train_loader = DataLoader(
     attack_train_set,
@@ -56,11 +57,11 @@ class DNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.dnn = nn.Sequential(
-            nn.Linear(10, 20),
+            nn.Linear(11, 20),
             nn.ReLU(),
-            nn.Linear(20, 20),
+            nn.Linear(20, 2),
             nn.ReLU(),
-            nn.Linear(20, 1),
+            nn.Linear(2, 1),
             nn.Sigmoid(),
         )
 
@@ -70,7 +71,7 @@ class DNN(nn.Module):
 
 model = DNN()
 
-optimizer = torch.optim.Adagrad(model.parameters(), lr=0.1)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
 
 criterion = nn.BCELoss()
 
@@ -89,7 +90,7 @@ for i in range(10000):
 
         output = model(inputs)
         
-        loss = criterion(output, target.unsqueeze(1).float()) # notice here need to unsqueeze and float to deal with dimension
+        loss = criterion(output, target.float()) # notice here need to unsqueeze and float to deal with dimension
         losses.append(loss.item())
         
         loss.backward()
@@ -111,7 +112,7 @@ for i in range(10000):
         for i, (inputs, target) in enumerate(attack_eval_loader):
             output = model(inputs)
 
-            loss_eval = criterion(output, target.unsqueeze(1).float())
+            loss_eval = criterion(output, target.float())
             losses_eval.append(loss_eval.item())
 
             output = torch.where(output >= 0.5, torch.ones_like(output), output)
