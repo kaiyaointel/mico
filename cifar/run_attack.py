@@ -10,14 +10,14 @@ from mico_competition import ChallengeDataset, load_cifar10, load_model
 
 # ATTACK
 
-CHALLENGE = "cifar10"
+CHALLENGE = "cifar10_kit"
 LEN_TRAINING = 50000
 LEN_CHALLENGE = 100
 
 scenarios = os.listdir(CHALLENGE)
 phases = ['dev', 'final', 'train']
 
-dataset = load_cifar10(dataset_dir="/data")
+dataset = load_cifar10(dataset_dir="./cifar10_data")
 
 criterion = torch.nn.CrossEntropyLoss(reduction='none')
 
