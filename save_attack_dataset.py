@@ -4,6 +4,7 @@ from torch import nn
 from mico_competition import ChallengeDataset, load_cifar10, load_model
 from torch.utils.data import DataLoader
 
+# download cifar dataset
 full_dataset = load_cifar10(dataset_dir="./cifar10_data/", download=False) # download=True for the 1st time
 
 features = []
