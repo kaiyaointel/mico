@@ -1,6 +1,6 @@
 cd starting-kit
 
-# python download_cifar10.py
+python download_cifar_kit.py
 
 # GET ATTACK DATA
 python save_attack_dataset.py # will save a file "features" and a file "memberships" as attack dataset for attack model training
