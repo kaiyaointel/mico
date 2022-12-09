@@ -12,7 +12,7 @@ memberships = []
 
 for i in range(1, 100): # 1 to 99
     print("folder # ", i)
-    model_folder_path = "./cifar10/cifar10_inf/train/model_" + str(i) + "/"
+    model_folder_path = "./cifar10_kit/cifar10_inf/train/model_" + str(i) + "/"
 
     with open(model_folder_path + "seed_training", "r") as f:
         seed_training = int(f.read())
