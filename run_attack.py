@@ -1,18 +1,3 @@
-# # DOWNLOAD STARTING KIT
-
-# import os
-# import urllib
-
-# from torchvision.datasets.utils import download_and_extract_archive
-
-# url = "https://membershipinference.blob.core.windows.net/mico/cifar10.zip" 
-# filename = "cifar10.zip"
-# md5 = "c615b172eb42aac01f3a0737540944b1"
-
-# # WARNING: this will download and extract a 2.1GiB file, if not already present. Please save the file and avoid re-downloading it.
-# download_and_extract_archive(url=url, download_root=os.curdir, extract_root=None, filename=filename, md5=md5, remove_finished=False)
-
-
 # IMPORT
 
 import numpy as np
