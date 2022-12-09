@@ -1,11 +1,11 @@
-cd starting-kit
-
+# DOWNLOAD CIFAR KIT
 python download_cifar_kit.py
 
 # GET ATTACK DATA
-python save_attack_dataset.py # will save a file "features" and a file "memberships" as attack dataset for attack model training
+python save_attack_dataset.py # this will save a file "features" and a file "memberships" as attack dataset for attack model training
 
-# conda install -y mkl mkl-include jemalloc
+# CPU SET UP
+conda install -y mkl mkl-include jemalloc
 
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
