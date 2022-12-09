@@ -14,7 +14,7 @@ This will unzip the kit ```cifar10.zip``` into ```./cifar10```
 ```
 python save_attack_dataset.py
 ```
-This will save a file "features" and a file "memberships" as attack dataset for attack model training.
+This will save a file ```features``` and a file ```memberships``` as attack dataset for attack model training.
 
 ### CPU set-ups
 ```
@@ -38,3 +38,4 @@ numactl --cpunodebind=0 --membind=0 python train_attack_model.py
 ```
 python run_attack.py
 ```
+This will save a file ```predictions_cifar10.zip``` for submitting on the website.
