@@ -2,6 +2,7 @@
 ```
 python download_cifar_kit.py
 ```
+This will download kit as ```cifar10.zip``` and download dataset into ```cifar10_data```.
 
 ### unzip kit
 ```
