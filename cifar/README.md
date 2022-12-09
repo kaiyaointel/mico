@@ -3,6 +3,11 @@
 python download_cifar_kit.py
 ```
 
+### unzip kit
+```
+unzip cifar10.zip
+```
+
 ### save attack dataset
 ```
 python save_attack_dataset.py
