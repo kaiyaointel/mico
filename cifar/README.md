@@ -1,13 +1,14 @@
-### download CIFAR-10 kit
+### download CIFAR-10 kit and dataset
 ```
-python download_cifar_kit.py
+python download_cifar.py
 ```
-This will download kit as ```cifar10.zip``` and download dataset into ```cifar10_data```.
+This will download kit as ```cifar10.zip``` and download dataset into ```./cifar10_data```.
 
 ### unzip kit
 ```
 unzip cifar10.zip
 ```
+This will unzip ```cifar10.zip``` into ```./cifar10```
 
 ### save attack dataset
 ```
